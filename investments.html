@@ -3,63 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Investment</title>
+  <title>My Investments</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f9fafb; margin:0; padding:0; }
-    header { background:#111; color:#fff; padding:1rem; text-align:center; }
-    .container { max-width:600px; margin:2rem auto; padding:2rem; background:#fff; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-    label { display:block; font-weight:bold; margin-top:1rem;}
-    input { width:100%; padding:0.75rem; margin-top:0.5rem; border:1px solid #ccc; border-radius:8px;}
-    button { background:#10b981; color:#fff; border:none; padding:0.75rem 1.5rem; border-radius:8px; margin-top:1rem; cursor:pointer;}
-    button:hover { background:#0e9a6d;}
-    .card { background:#f3f4f6; padding:1rem; border-radius:10px; margin-top:1.5rem;}
-    .highlight { color:#10b981; font-weight:bold;}
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f3d66;
+      color: white;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    .container {
+      margin: 50px auto;
+      max-width: 600px;
+      background: #ffffff10;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #ffcc00;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      max-width: 350px;
+      border-radius: 6px;
+      border: none;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 20px;
+      background: #ffcc00;
+      color: #0f3d66;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #e6b800;
+    }
+    .card {
+      background: #ffffff15;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: left;
+    }
+    .highlight {
+      font-weight: bold;
+      color: #ffcc00;
+    }
+    p {
+      margin: 8px 0;
+    }
   </style>
 </head>
 <body>
-  <header><h1>Check Investment</h1></header>
   <div class="container">
-    <label>Enter UPI ID (for login)</label>
-    <input type="text" id="upiLogin">
-    <button onclick="checkInvestment()">See My Investment</button>
+    <h1>Check Your Investments</h1>
+    <input type="text" id="upiLogin" placeholder="Enter your UPI ID" />
+    <br>
+    <button onclick="checkInvestment()">See Investment</button>
     <div id="result"></div>
   </div>
 
   <script>
     async function checkInvestment() {
       const upi = document.getElementById('upiLogin').value.trim();
-      const res = await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec?action=getInvestments&upi=" + encodeURIComponent(upi));
-      const data = await res.json();
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = "";
 
-      if (!data || !data.name) {
-        document.getElementById('result').innerHTML = "<p style='color:red;'>No investment found!</p>";
+      if (!upi) {
+        resultDiv.innerHTML = "<p style='color:red;'>Please enter your UPI ID.</p>";
         return;
       }
 
-      const start = new Date(data.date);
-      const maturity = new Date(start);
-      maturity.setDate(maturity.getDate() + parseInt(data.days));
+      try {
+        const res = await fetch("YOUR_DEPLOYED_WEB_APP_URL?upi=" + encodeURIComponent(upi));
+        const data = await res.json();
 
-      const today = new Date();
-      const elapsedDays = Math.floor((today - start) / (1000*60*60*24));
-      const dailyInterest = (data.amount * (data.rate/100)) / 365;
-      const totalInterest = (elapsedDays * dailyInterest).toFixed(2);
-      const totalToday = (parseFloat(data.amount) + parseFloat(totalInterest)).toFixed(2);
-      const totalMaturity = (parseFloat(data.amount) + ((data.amount * (data.rate/100)) * (data.days/365))).toFixed(2);
+        if (!data || !data.status) {
+          resultDiv.innerHTML = "<p style='color:red;'>No investment found!</p>";
+          return;
+        }
 
-      document.getElementById('result').innerHTML = `
-        <div class="card">
-          <p><strong>Name:</strong> ${data.name}</p>
-          <p><strong>Invested Amount:</strong> ₹${data.amount}</p>
-          <p><strong>Invested Date:</strong> ${start.toDateString()}</p>
-          <p><strong>Maturity Date:</strong> ${maturity.toDateString()}</p>
-          <p><strong>Plan:</strong> ${data.days} days @ ${data.rate}% p.a.</p>
-          <p><strong>Days Elapsed:</strong> ${elapsedDays} days</p>
-          <p><strong>Interest Earned Till Today:</strong> <span class="highlight">₹${totalInterest}</span></p>
-          <p><strong>Total Value Today:</strong> <span class="highlight">₹${totalToday}</span></p>
-          <p><strong>Total Value on Maturity:</strong> <span class="highlight">₹${totalMaturity}</span></p>
-        </div>`;
+        if (data.status === "pending") {
+          resultDiv.innerHTML = `
+            <p style="color:orange;">
+              Your investment is <strong>not yet confirmed</strong>.<br>
+              If you have already made payment, please wait up to 24 hours.<br>
+              Your investments will be updated here once confirmed.
+            </p>`;
+          return;
+        }
+
+        if (data.status === "confirmed") {
+          const start = new Date(data.date);
+          const maturity = new Date(start);
+          maturity.setDate(maturity.getDate() + parseInt(data.days));
+
+          const today = new Date();
+          const elapsedDays = Math.floor((today - start) / (1000*60*60*24));
+
+          const dailyInterest = (data.amount * (data.rate/100)) / 365;
+          const totalInterest = (elapsedDays * dailyInterest).toFixed(2);
+          const totalToday = (parseFloat(data.amount) + parseFloat(totalInterest)).toFixed(2);
+          const totalMaturity = (parseFloat(data.amount) + ((data.amount * (data.rate/100)) * (data.days/365))).toFixed(2);
+
+          resultDiv.innerHTML = `
+            <div class="card">
+              <p><strong>Name:</strong> ${data.name}</p>
+              <p><strong>Invested Amount:</strong> ₹${data.amount}</p>
+              <p><strong>Invested Date:</strong> ${start.toDateString()}</p>
+              <p><strong>Maturity Date:</strong> ${maturity.toDateString()}</p>
+              <p><strong>Plan:</strong> ${data.days} days @ ${data.rate}% p.a.</p>
+              <p><strong>Days Elapsed:</strong> ${elapsedDays} days</p>
+              <p><strong>Interest Earned Till Today:</strong> <span class="highlight">₹${totalInterest}</span></p>
+              <p><strong>Total Value Today:</strong> <span class="highlight">₹${totalToday}</span></p>
+              <p><strong>Total Value on Maturity:</strong> <span class="highlight">₹${totalMaturity}</span></p>
+            </div>`;
+        }
+      } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = "<p style='color:red;'>Error fetching data. Please try again later.</p>";
+      }
     }
   </script>
 </body>
 </html>
+
+
+
