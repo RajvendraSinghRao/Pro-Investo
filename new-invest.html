@@ -90,7 +90,7 @@
       formData.append("days", days);
       formData.append("rate", rate);
       formData.append("date", date);
-      formData.append("status", "Pending"); // Column J = Pending
+      formData.append("status", "Pending"); // ✅ Auto mark as Pending in Excel
 
       try {
         // Submit to your Apps Script Web App
@@ -99,9 +99,11 @@
           body: formData
         });
 
-        // Redirect to UPI app
-        const upiUrl = `upi://pay?pa=rajvendrarao@okhdfcbank&pn=${encodeURIComponent("Rajvendra Singh Rao")}&am=${amount}&cu=INR&tn=${encodeURIComponent("Investment Payment")}`;
-        window.open(upiUrl, "_self"); // Use _self to open in same tab/mobile
+        // Small delay to ensure data is saved before opening UPI
+        setTimeout(() => {
+          const upiUrl = `upi://pay?pa=rajvendrarao@okhdfcbank&pn=${encodeURIComponent("Rajvendra Singh Rao")}&am=${amount}&cu=INR&tn=${encodeURIComponent("Investment Payment")}`;
+          window.location.href = upiUrl; // open UPI in same tab
+        }, 500); // half a second delay
 
       } catch (error) {
         alert("Error submitting investment. Please try again.");
