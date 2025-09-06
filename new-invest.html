@@ -28,19 +28,19 @@
   <header><h1>New Investment</h1></header>
   <div class="container">
     <label>Name</label>
-    <input type="text" id="name">
+    <input type="text" id="name" required>
 
     <label>Email</label>
-    <input type="email" id="email">
+    <input type="email" id="email" required>
 
     <label>Mobile Number</label>
-    <input type="text" id="mobile">
+    <input type="text" id="mobile" required>
 
     <label>UPI ID</label>
-    <input type="text" id="upi">
+    <input type="text" id="upi" required>
 
     <label>Investment Amount (₹)</label>
-    <input type="number" id="amount">
+    <input type="number" id="amount" required>
 
     <label>Plan</label>
     <select id="plan">
@@ -81,6 +81,7 @@
 
       // ✅ Prepare form data for Google Sheet
       const formData = new FormData();
+      formData.append("action", "add"); // important to tell Apps Script we are adding
       formData.append("name", name);
       formData.append("email", email);
       formData.append("mobile", mobile);
@@ -89,10 +90,14 @@
       formData.append("days", days);
       formData.append("rate", rate);
       formData.append("date", date);
+      formData.append("status", "Pending"); // ✅ Auto mark as Pending in Column J
 
       try {
-        // Replace SHEET_URL with your Apps Script Web App URL
-        await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec", { method: "POST", body: formData });
+        // Replace with your own Apps Script Web App URL
+        await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec", { 
+          method: "POST", 
+          body: formData 
+        });
 
         // ✅ Redirect to UPI payment app
         const upiUrl = `upi://pay?pa=rajvendrarao@okhdfcbank&pn=${encodeURIComponent("Rajvendra Singh Rao")}&am=${amount}&cu=INR&tn=${encodeURIComponent("Investment Payment")}`;
