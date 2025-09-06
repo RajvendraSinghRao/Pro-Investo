@@ -92,7 +92,7 @@
 
       try {
         // Replace SHEET_URL with your Apps Script Web App URL
-        await fetch("SHEET_URL", { method: "POST", body: formData });
+        await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec", { method: "POST", body: formData });
 
         // ✅ Redirect to UPI payment app
         const upiUrl = `upi://pay?pa=rajvendrarao@okhdfcbank&pn=${encodeURIComponent("Rajvendra Singh Rao")}&am=${amount}&cu=INR&tn=${encodeURIComponent("Investment Payment")}`;
