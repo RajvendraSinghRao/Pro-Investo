@@ -28,7 +28,7 @@
   <script>
     async function checkInvestment() {
       const upi = document.getElementById('upiLogin').value.trim();
-      const res = await fetch("SHEET_URL?action=getInvestments&upi=" + encodeURIComponent(upi));
+      const res = await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec?action=getInvestments&upi=" + encodeURIComponent(upi));
       const data = await res.json();
 
       if (!data || !data.name) {
