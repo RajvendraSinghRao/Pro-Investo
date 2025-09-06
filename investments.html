@@ -74,75 +74,78 @@
   </div>
 
   <script>
-    async function checkInvestment() {
+    // Hardcoded test investor
+    const investors = [
+      {
+        name: "Test Investor",
+        email: "test@example.com",
+        mobile: "9999999999",
+        upi: "testupi@okhdfcbank",
+        amount: 5000,
+        startDate: "2025-09-01",
+        days: 30,
+        rate: 12,
+        confirmation: "Confirm"
+      }
+    ];
+
+    function checkInvestment() {
       const upi = document.getElementById('upiLogin').value.trim();
       const resultDiv = document.getElementById('result');
       resultDiv.innerHTML = "";
 
-      // Empty UPI check
       if (!upi) {
         resultDiv.innerHTML = "<p style='color:red;'>⚠️ Please enter your UPI ID.</p>";
         return;
       }
 
-      try {
-        // Fetch from Google Apps Script Web App
-        const res = await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec?upi=" + encodeURIComponent(upi));
-        const data = await res.json();
+      const investor = investors.find(inv => inv.upi === upi);
 
-        console.log("Response:", data); // Debugging
-
-        if (data.status === "notfound") {
-          resultDiv.innerHTML = "<p style='color:red;'>❌ No investment found for this UPI ID.</p>";
-          return;
-        }
-
-        if (data.status === "pending") {
-          resultDiv.innerHTML = `
-            <p style="color:orange;">
-              ⏳ Your investment is <strong>not yet confirmed</strong>.<br>
-              If you have already made payment, please wait up to <strong>24 hours</strong>.<br>
-              Your investments will appear here once confirmed.
-            </p>`;
-          return;
-        }
-
-        if (data.status === "confirmed") {
-          // Convert dates
-          const start = new Date(data.date);
-          const maturity = new Date(start);
-          maturity.setDate(maturity.getDate() + parseInt(data.days));
-
-          const today = new Date();
-          const elapsedDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-
-          // Interest calculations
-          const principal = parseFloat(data.amount);
-          const dailyInterest = (principal * (data.rate / 100)) / 365;
-          const totalInterest = (elapsedDays * dailyInterest).toFixed(2);
-          const totalToday = (principal + parseFloat(totalInterest)).toFixed(2);
-          const totalMaturity = (principal + ((principal * (data.rate / 100)) * (data.days / 365))).toFixed(2);
-
-          resultDiv.innerHTML = `
-            <div class="card">
-              <p><strong>Name:</strong> ${data.name}</p>
-              <p><strong>Email:</strong> ${data.email}</p>
-              <p><strong>Mobile:</strong> ${data.mobile}</p>
-              <p><strong>UPI ID:</strong> ${data.upi}</p>
-              <p><strong>Invested Amount:</strong> ₹${principal}</p>
-              <p><strong>Invested Date:</strong> ${start.toDateString()}</p>
-              <p><strong>Maturity Date:</strong> ${maturity.toDateString()}</p>
-              <p><strong>Plan:</strong> ${data.days} days @ ${data.rate}% p.a.</p>
-              <p><strong>Days Elapsed:</strong> ${elapsedDays} days</p>
-              <p><strong>Interest Earned Till Today:</strong> <span class="highlight">₹${totalInterest}</span></p>
-              <p><strong>Total Value Today:</strong> <span class="highlight">₹${totalToday}</span></p>
-              <p><strong>Total Value on Maturity:</strong> <span class="highlight">₹${totalMaturity}</span></p>
-            </div>`;
-        }
-      } catch (err) {
-        console.error("Error:", err);
-        resultDiv.innerHTML = "<p style='color:red;'>⚠️ Error fetching data. Please try again later.</p>";
+      if (!investor) {
+        resultDiv.innerHTML = `
+          <p style="color:orange;">
+            ⏳ If you have completed the payment, your investment will be updated within 24 hours.
+          </p>`;
+        return;
       }
+
+      if (investor.confirmation.toLowerCase() !== "confirm") {
+        resultDiv.innerHTML = `
+          <p style="color:orange;">
+            ⏳ Your investment is not yet confirmed. It will appear here once confirmed by admin.
+          </p>`;
+        return;
+      }
+
+      // Show investment details
+      const start = new Date(investor.startDate);
+      const maturity = new Date(start);
+      maturity.setDate(maturity.getDate() + investor.days);
+
+      const today = new Date();
+      const elapsedDays = Math.floor((today - start) / (1000*60*60*24));
+
+      const principal = investor.amount;
+      const dailyInterest = (principal * (investor.rate/100)) / 365;
+      const totalInterest = (elapsedDays * dailyInterest).toFixed(2);
+      const totalToday = (principal + parseFloat(totalInterest)).toFixed(2);
+      const totalMaturity = (principal + ((principal * (investor.rate/100)) * (investor.days/365))).toFixed(2);
+
+      resultDiv.innerHTML = `
+        <div class="card">
+          <p><strong>Name:</strong> ${investor.name}</p>
+          <p><strong>Email:</strong> ${investor.email}</p>
+          <p><strong>Mobile:</strong> ${investor.mobile}</p>
+          <p><strong>UPI ID:</strong> ${investor.upi}</p>
+          <p><strong>Invested Amount:</strong> ₹${principal}</p>
+          <p><strong>Invested Date:</strong> ${start.toDateString()}</p>
+          <p><strong>Maturity Date:</strong> ${maturity.toDateString()}</p>
+          <p><strong>Plan:</strong> ${investor.days} days @ ${investor.rate}% p.a.</p>
+          <p><strong>Days Elapsed:</strong> ${elapsedDays} days</p>
+          <p><strong>Interest Earned Till Today:</strong> <span class="highlight">₹${totalInterest}</span></p>
+          <p><strong>Total Value Today:</strong> <span class="highlight">₹${totalToday}</span></p>
+          <p><strong>Total Value on Maturity:</strong> <span class="highlight">₹${totalMaturity}</span></p>
+        </div>`;
     }
   </script>
 </body>
