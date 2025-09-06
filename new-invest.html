@@ -65,11 +65,11 @@
       const email = document.getElementById('email').value.trim();
       const mobile = document.getElementById('mobile').value.trim();
       const upi = document.getElementById('upi').value.trim();
-      const amount = parseInt(document.getElementById('amount').value.trim());
+      const amount = parseFloat(document.getElementById('amount').value.trim());
       const [days, rate] = document.getElementById('plan').value.split('|');
       const date = document.getElementById('date').value;
 
-      // ✅ Validation
+      // Validation
       if (!name || !email || !mobile || !upi || !amount) {
         alert("Please fill all fields!");
         return;
@@ -79,9 +79,9 @@
         return;
       }
 
-      // ✅ Prepare form data for Google Sheet
+      // Prepare form data for Google Sheet
       const formData = new FormData();
-      formData.append("action", "add"); // important to tell Apps Script we are adding
+      formData.append("action", "add");
       formData.append("name", name);
       formData.append("email", email);
       formData.append("mobile", mobile);
@@ -90,18 +90,18 @@
       formData.append("days", days);
       formData.append("rate", rate);
       formData.append("date", date);
-      formData.append("status", "Pending"); // ✅ Auto mark as Pending in Column J
+      formData.append("status", "Pending"); // Column J = Pending
 
       try {
-        // Replace with your own Apps Script Web App URL
-        await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec", { 
-          method: "POST", 
-          body: formData 
+        // Submit to your Apps Script Web App
+        await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec", {
+          method: "POST",
+          body: formData
         });
 
-        // ✅ Redirect to UPI payment app
+        // Redirect to UPI app
         const upiUrl = `upi://pay?pa=rajvendrarao@okhdfcbank&pn=${encodeURIComponent("Rajvendra Singh Rao")}&am=${amount}&cu=INR&tn=${encodeURIComponent("Investment Payment")}`;
-        window.location.href = upiUrl;
+        window.open(upiUrl, "_self"); // Use _self to open in same tab/mobile
 
       } catch (error) {
         alert("Error submitting investment. Please try again.");
