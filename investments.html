@@ -85,10 +85,11 @@
       }
 
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec" + encodeURIComponent(upi));
+        // ✅ Add ?upi= before parameter
+        const res = await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec?upi=" + encodeURIComponent(upi));
         const data = await res.json();
 
-        if (!data || !data.status) {
+        if (data.status === "notfound") {
           resultDiv.innerHTML = "<p style='color:red;'>No investment found!</p>";
           return;
         }
@@ -119,6 +120,9 @@
           resultDiv.innerHTML = `
             <div class="card">
               <p><strong>Name:</strong> ${data.name}</p>
+              <p><strong>Email:</strong> ${data.email}</p>
+              <p><strong>Mobile:</strong> ${data.mobile}</p>
+              <p><strong>UPI ID:</strong> ${data.upi}</p>
               <p><strong>Invested Amount:</strong> ₹${data.amount}</p>
               <p><strong>Invested Date:</strong> ${start.toDateString()}</p>
               <p><strong>Maturity Date:</strong> ${maturity.toDateString()}</p>
@@ -137,6 +141,5 @@
   </script>
 </body>
 </html>
-
 
 
