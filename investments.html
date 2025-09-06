@@ -85,7 +85,7 @@
       }
 
       try {
-        const res = await fetch("YOUR_DEPLOYED_WEB_APP_URL?upi=" + encodeURIComponent(upi));
+        const res = await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec" + encodeURIComponent(upi));
         const data = await res.json();
 
         if (!data || !data.status) {
