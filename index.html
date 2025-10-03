@@ -197,7 +197,8 @@ document.addEventListener("DOMContentLoaded", function(){
         const upiID = "rajvendrarao@okhdfcbank";
         const nameUPI = "Rajvendra Singh Rao";
         const txnAmount = amount.toFixed(2);
-        const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
+        const txnNote = "Investment by " + name; // user name from form
+        const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR&tn=${encodeURIComponent(txnNote)}`;
 
         window.location.href = upiURL;
 
