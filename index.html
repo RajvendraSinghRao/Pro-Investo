@@ -95,8 +95,8 @@
     <option value="30">30 days (3% annualized)</option>
   </select>
 
-  <button onclick="calculateInterest()">Calculate Earnings</button>
-  <button onclick="openForm()">Invest Now</button>
+  <button id="calcBtn">Calculate Earnings</button>
+  <button id="investBtn">Invest Now</button>
 
   <div class="result" id="result">
     Enter amount and select period to see your earnings.
@@ -105,7 +105,7 @@
 
 <div class="popup" id="popupForm">
   <div class="popup-content">
-    <span class="close-btn" onclick="closeForm()">×</span>
+    <span class="close-btn" id="closeForm">×</span>
     <h3>Investment Form</h3>
     <label>Name:</label>
     <input type="text" id="fname" required>
@@ -124,35 +124,44 @@
       <option value="90">90 days (6% annualized)</option>
       <option value="30">30 days (3% annualized)</option>
     </select>
-    <button onclick="submitForm()">Submit & Pay</button>
+    <button id="submitBtn">Submit & Pay</button>
   </div>
 </div>
 
 <script>
-  function calculateInterest() {
+document.addEventListener("DOMContentLoaded", function(){
+
+  const resultDiv = document.getElementById('result');
+  const popup = document.getElementById('popupForm');
+
+  // Calculate Earnings
+  document.getElementById('calcBtn').addEventListener('click', function() {
     const amount = parseFloat(document.getElementById('amount').value);
     const days = parseInt(document.getElementById('days').value);
-    let rate = days===365?12:days===182?9:days===90?6:3;
+    const rate = days===365?12:days===182?9:days===90?6:3;
 
-    if (isNaN(amount) || amount < 2000) {
-      document.getElementById('result').innerText = "Minimum Investment Amount should be ₹2000.";
+    if(isNaN(amount) || amount < 2000){
+      resultDiv.innerText = "Minimum Investment Amount should be ₹2000.";
       return;
     }
 
     const interest = (amount * rate * days) / (365 * 100);
     const total = amount + interest;
-    document.getElementById('result').innerHTML = `
+
+    resultDiv.innerHTML = `
       Investment Amount: ₹${amount.toFixed(2)}<br>
       Duration: ${days} days<br>
       Interest Earned: ₹${interest.toFixed(2)}<br>
       Total Amount after ${days} days: ₹${total.toFixed(2)}
     `;
-  }
+  });
 
-  function openForm() { document.getElementById('popupForm').style.display = "flex"; }
-  function closeForm() { document.getElementById('popupForm').style.display = "none"; }
+  // Open & Close Form
+  document.getElementById('investBtn').addEventListener('click', ()=> popup.style.display = "flex");
+  document.getElementById('closeForm').addEventListener('click', ()=> popup.style.display = "none");
 
-  async function submitForm() {
+  // Submit Form
+  document.getElementById('submitBtn').addEventListener('click', async function(){
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
     const mobile = document.getElementById('fmobile').value.trim();
@@ -160,7 +169,7 @@
     const upi = document.getElementById('fupi').value.trim();
     const days = parseInt(document.getElementById('fdays').value);
 
-    if (!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000) {
+    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000){
       alert("Please fill all fields correctly. Minimum amount is ₹2000.");
       return;
     }
@@ -170,8 +179,7 @@
 
     const scriptURL = "https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec";
 
-    try {
-      // Use FormData to avoid CORS issues
+    try{
       const formData = new FormData();
       formData.append('name', name);
       formData.append('email', email);
@@ -183,37 +191,31 @@
       formData.append('date', date);
 
       const response = await fetch(scriptURL, { method: 'POST', body: formData });
-      const result = await response.json();
+      
+      if(response.ok){
+        alert("Form submitted successfully! Opening UPI app...");
 
-      if(result.status === "success") {
-    alert("Form submitted successfully! Opening UPI app...");
+        const upiID = "rajvendrarao@okhdfcbank";
+        const nameUPI = "Rajvendra Singh Rao";
+        const txnAmount = amount.toFixed(2);
+        const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
 
-    const upiID = "rajvendrarao@okhdfcbank";
-    const nameUPI = "Rajvendra Singh Rao";
-    const txnAmount = amount.toFixed(2);
-    const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
+        window.location.href = upiURL;
 
-    // Open UPI app directly
-    window.location.href = upiURL;
-
-    // Fallback alert if app does not open
-    setTimeout(() => {
-        alert("If the UPI app did not open, please pay manually using UPI ID: " + upiID);
-    }, 2000);
-}
-
-
+        setTimeout(()=>{
+          alert("If UPI app did not open, please pay manually using UPI ID: " + upiID);
+        }, 2000);
       } else {
         alert("Error submitting form. Try again.");
       }
 
-    } catch(err) {
+    } catch(err){
       console.error(err);
       alert("Error connecting to server.");
     }
-  }
+  });
+
+});
 </script>
 </body>
 </html>
-
-
