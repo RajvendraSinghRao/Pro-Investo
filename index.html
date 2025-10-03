@@ -116,6 +116,8 @@
     <label>Mobile:</label>
     <input type="text" id="fmobile" required>
     <label>Amount (≥ ₹2000):</label>
+    <label>Your UPI ID:</label>
+    <input type="text" id="fupi" placeholder="example@okhdfcbank" required>
     <input type="number" id="famount" required>
     <label>Investment Period:</label>
     <select id="fdays">
@@ -165,9 +167,10 @@
     const email = document.getElementById('femail').value.trim();
     const mobile = document.getElementById('fmobile').value.trim();
     const amount = parseFloat(document.getElementById('famount').value);
+    const upi = document.getElementById('fupi').value.trim();
     const days = parseInt(document.getElementById('fdays').value);
 
-    if (!name || !email || !mobile || isNaN(amount) || amount < 2000) {
+    if (!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000) {
       alert("Please fill all fields correctly. Minimum amount is ₹2000.");
       return;
     }
@@ -187,7 +190,7 @@
         method: 'POST',
         body: new URLSearchParams({
           name, email, mobile,
-          upi: 'rajvendrarao@okhdfcbank',
+          upi,
           amount, days, rate, date
         })
       });
@@ -197,7 +200,7 @@
 
         // Open UPI app using temporary link (mobile-friendly)
         const upiID = "rajvendrarao@okhdfcbank";
-        const nameUPI = "Rajvendra singh rao";
+        const nameUPI = "Rajvendra Singh Rao";
         const txnAmount = amount.toFixed(2);
         const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
 
