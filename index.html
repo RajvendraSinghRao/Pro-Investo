@@ -186,22 +186,22 @@
       const result = await response.json();
 
       if(result.status === "success") {
-        alert("Form submitted successfully! Opening UPI app...");
+    alert("Form submitted successfully! Opening UPI app...");
 
-        const upiID = "rajvendrarao@okhdfcbank";
-        const nameUPI = "Rajvendra singh rao";
-        const txnAmount = amount.toFixed(2);
-        const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
+    const upiID = "rajvendrarao@okhdfcbank";
+    const nameUPI = "Rajvendra Singh Rao";
+    const txnAmount = amount.toFixed(2);
+    const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
 
-        const a = document.createElement('a');
-        a.href = upiURL;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    // Open UPI app directly
+    window.location.href = upiURL;
 
-        setTimeout(() => {
-          alert("If the UPI app did not open, please pay manually using UPI ID: " + upiID);
-        }, 2000);
+    // Fallback alert if app does not open
+    setTimeout(() => {
+        alert("If the UPI app did not open, please pay manually using UPI ID: " + upiID);
+    }, 2000);
+}
+
 
       } else {
         alert("Error submitting form. Try again.");
