@@ -113,7 +113,7 @@
     <input type="email" id="femail" required>
     <label>Mobile:</label>
     <input type="text" id="fmobile" required>
-    <label>Amount (≥ ₹2000):</label>
+    <label>Amount (≥ ₹1):</label>
     <input type="number" id="famount" required>
     <label>Your UPI ID:</label>
     <input type="text" id="fupi" placeholder="example@okhdfcbank" required>
@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const upi = document.getElementById('fupi').value.trim();
     const days = parseInt(document.getElementById('fdays').value);
 
-    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000){
+    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 1){
       alert("Please fill all fields correctly. Minimum amount is ₹2000.");
       return;
     }
