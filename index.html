@@ -23,9 +23,7 @@
     width: 100%;
     text-align: center;
   }
-  h2 {
-    color: #333;
-  }
+  h2 { color: #333; }
   label {
     display: block;
     margin-top: 15px;
@@ -46,9 +44,7 @@
     border: none;
     cursor: pointer;
   }
-  button:hover {
-    background: #0a2a45;
-  }
+  button:hover { background: #0a2a45; }
   .result {
     margin-top: 20px;
     padding: 15px;
@@ -57,7 +53,6 @@
     font-weight: bold;
     color: #0f3d66;
   }
-
   /* Popup form */
   .popup {
     display: none;
@@ -77,9 +72,7 @@
     text-align: left;
     position: relative;
   }
-  .popup-content h3 {
-    text-align: center;
-  }
+  .popup-content h3 { text-align: center; }
   .close-btn {
     position: absolute;
     top:10px; right:15px;
@@ -141,13 +134,12 @@
     const amount = parseFloat(document.getElementById('amount').value);
     const days = parseInt(document.getElementById('days').value);
     let annualRate = 0;
-
     if (days === 365) annualRate = 12;
     else if (days === 182) annualRate = 9;
     else if (days === 90) annualRate = 6;
     else if (days === 30) annualRate = 3;
 
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amount) || amount <= 2000) {
       document.getElementById('result').innerText = "Please enter a valid investment amount.";
       return;
     }
@@ -164,14 +156,10 @@
   }
 
   // Open/Close Form
-  function openForm() { 
-    document.getElementById('popupForm').style.display = "flex";
-  }
-  function closeForm() {
-    document.getElementById('popupForm').style.display = "none";
-  }
+  function openForm() { document.getElementById('popupForm').style.display = "flex"; }
+  function closeForm() { document.getElementById('popupForm').style.display = "none"; }
 
-  // Submit form
+  // Submit form with UPI
   async function submitForm() {
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
@@ -206,12 +194,24 @@
       const result = await response.json();
       if(result.status === "success") {
         alert("Form submitted successfully! Opening UPI app...");
-        // Open UPI app
+
+        // Open UPI app using temporary link (mobile-friendly)
         const upiID = "rajvendrarao@okhdfcbank";
         const nameUPI = "Rajvendra singh rao";
         const txnAmount = amount.toFixed(2);
         const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR`;
-        window.location.href = upiURL;
+
+        const a = document.createElement('a');
+        a.href = upiURL;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Optional fallback
+        setTimeout(() => {
+          alert("If the UPI app did not open, please pay manually using UPI ID: " + upiID);
+        }, 2000);
+
       } else {
         alert("Error submitting form. Try again.");
       }
