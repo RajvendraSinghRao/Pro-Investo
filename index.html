@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const upi = document.getElementById('fupi').value.trim();
     const days = parseInt(document.getElementById('fdays').value);
 
-    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000){
+    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 1){
       alert("Please fill all fields correctly. Minimum amount is ₹2000.");
       return;
     }
