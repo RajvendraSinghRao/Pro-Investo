@@ -1,114 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Investment</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; padding: 0; }
-    header { background: #111; color: #fff; padding: 1rem; text-align: center; }
-    .container {
-      max-width: 600px; margin: 2rem auto; background: #fff;
-      padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    label { display:block; margin-top:1rem; font-weight:bold; }
-    input, select {
-      width: 100%; padding: 0.75rem; margin-top:0.5rem;
-      border:1px solid #ccc; border-radius:8px;
-    }
-    button {
-      background:#10b981; color:#fff; border:none;
-      padding:0.75rem 1.5rem; border-radius:8px;
-      margin-top:1.5rem; cursor:pointer; font-size:1rem;
-    }
-    button:hover { background:#0e9a6d; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Platform</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+  h2 { color: #333; }
+  label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: #555;
+  }
+  input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  button {
+    background: #0f3d66;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover { background: #0a2a45; }
+  .result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e6f0ff;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #0f3d66;
+  }
+  .popup {
+    display: none;
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .popup-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    text-align: left;
+    position: relative;
+  }
+  .popup-content h3 { text-align: center; }
+  .close-btn {
+    position: absolute;
+    top:10px; right:15px;
+    cursor:pointer;
+    font-size: 20px;
+  }
+  /* Progress bar */
+  .progress-container {
+    margin-top:5px;
+    background:#ddd;
+    border-radius:8px;
+    overflow:hidden;
+    height:20px;
+  }
+  .progress-bar {
+    height:100%;
+    width:0%;
+    background:#0f3d66;
+    transition: width 0.5s;
+  }
+  .investment-block {
+    margin-bottom:20px;
+    padding:10px;
+    border-bottom:1px solid #ccc;
+  }
+</style>
 </head>
 <body>
-  <header><h1>New Investment</h1></header>
-  <div class="container">
-    <label>Name</label>
-    <input type="text" id="name" required>
 
-    <label>Email</label>
-    <input type="email" id="email" required>
+<div class="container">
+  <h2>Investment Calculator</h2>
+  <label for="amount">Investment Amount (₹):</label>
+  <input type="number" id="amount" placeholder="Enter amount" />
 
-    <label>Mobile Number</label>
-    <input type="text" id="mobile" required>
+  <label for="days">Select Investment Period:</label>
+  <select id="days">
+    <option value="365">365 days (12% annualized)</option>
+    <option value="182">182 days (9% annualized)</option>
+    <option value="90">90 days (6% annualized)</option>
+    <option value="30">30 days (3% annualized)</option>
+  </select>
 
-    <label>UPI ID</label>
-    <input type="text" id="upi" required>
+  <button id="calcBtn">Calculate Earnings</button>
+  <button id="investBtn">Invest Now</button>
+  <button id="checkBtn">Check My Investment</button>
 
-    <label>Investment Amount (₹)</label>
-    <input type="number" id="amount" required>
-
-    <label>Plan</label>
-    <select id="plan">
-      <option value="30|6">30 days (6% p.a.)</option>
-      <option value="90|9">90 days (9% p.a.)</option>
-      <option value="180|12">180 days (12% p.a.)</option>
-      <option value="360|15">360 days (15% p.a.)</option>
-    </select>
-
-    <label>Date of Investment</label>
-    <input type="date" id="date" readonly>
-
-    <button onclick="submitInvestment()">Pay & Invest</button>
+  <div class="result" id="result">
+    Enter amount and select period to see your earnings.
   </div>
+</div>
 
-  <script>
-    // Auto-fill today's date
-    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+<!-- Investment Form Popup -->
+<div class="popup" id="popupForm">
+  <div class="popup-content">
+    <span class="close-btn" id="closeForm">×</span>
+    <h3>Investment Form</h3>
+    <label>Name:</label>
+    <input type="text" id="fname" required>
+    <label>Email:</label>
+    <input type="email" id="femail" required>
+    <label>Mobile:</label>
+    <input type="text" id="fmobile" required>
+    <label>Amount (≥ ₹2000):</label>
+    <input type="number" id="famount" required>
+    <label>Your UPI ID:</label>
+    <input type="text" id="fupi" placeholder="example@okhdfcbank" required>
+    <label>Investment Period:</label>
+    <select id="fdays">
+      <option value="365">365 days (12% annualized)</option>
+      <option value="182">182 days (9% annualized)</option>
+      <option value="90">90 days (6% annualized)</option>
+      <option value="30">30 days (3% annualized)</option>
+    </select>
+    <button id="submitBtn">Submit & Pay</button>
+  </div>
+</div>
 
-    async function submitInvestment() {
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const mobile = document.getElementById('mobile').value.trim();
-      const upi = document.getElementById('upi').value.trim();
-      const amount = parseFloat(document.getElementById('amount').value.trim());
-      const [days, rate] = document.getElementById('plan').value.split('|');
-      const date = document.getElementById('date').value;
+<!-- Check Investment Popup -->
+<div class="popup" id="popupCheck">
+  <div class="popup-content">
+    <span class="close-btn" id="closeCheck">×</span>
+    <h3>Check My Investment</h3>
+    <label>Enter Mobile Number:</label>
+    <input type="text" id="checkMobile" placeholder="Enter your registered mobile">
+    <button id="getInvestment">View Investments</button>
+    <div id="investmentResult" style="margin-top:15px; font-weight:bold;"></div>
+  </div>
+</div>
 
-      // Validation
-      if (!name || !email || !mobile || !upi || !amount) {
-        alert("Please fill all fields!");
-        return;
-      }
-      if (amount % 2500 !== 0) {
-        alert("Amount must be in multiples of ₹2500.");
-        return;
-      }
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const resultDiv = document.getElementById('result');
+  const popup = document.getElementById('popupForm');
+  const popupCheck = document.getElementById('popupCheck');
+  const investmentResult = document.getElementById('investmentResult');
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec";
 
-      // Prepare form data for Google Sheet
-      const formData = new FormData();
-      formData.append("action", "add");
-      formData.append("name", name);
-      formData.append("email", email);
-      formData.append("mobile", mobile);
-      formData.append("upi", upi);
-      formData.append("amount", amount);
-      formData.append("days", days);
-      formData.append("rate", rate);
-      formData.append("date", date);
-      formData.append("status", "Pending"); // ✅ Auto mark as Pending in Excel
+  // Calculate Earnings
+  document.getElementById('calcBtn').addEventListener('click', function() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const days = parseInt(document.getElementById('days').value);
+    const rate = days===365?12:days===182?9:days===90?6:3;
 
-      try {
-        // Submit to your Apps Script Web App
-        await fetch("https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec", {
-          method: "POST",
-          body: formData
-        });
-
-        // Small delay to ensure data is saved before opening UPI
-        setTimeout(() => {
-          const upiUrl = `upi://pay?pa=rajvendrarao@okhdfcbank&pn=${encodeURIComponent("Rajvendra Singh Rao")}&am=${amount}&cu=INR&tn=${encodeURIComponent("Investment Payment")}`;
-          window.location.href = upiUrl; // open UPI in same tab
-        }, 500); // half a second delay
-
-      } catch (error) {
-        alert("Error submitting investment. Please try again.");
-      }
+    if(isNaN(amount) || amount < 2000){
+      resultDiv.innerText = "Minimum Investment Amount should be ₹2000.";
+      return;
     }
-  </script>
+
+    const interest = (amount * rate * days) / (365 * 100);
+    const total = amount + interest;
+
+    resultDiv.innerHTML = `
+      Investment Amount: ₹${amount.toFixed(2)}<br>
+      Duration: ${days} days<br>
+      Interest Earned: ₹${interest.toFixed(2)}<br>
+      Total Amount after ${days} days: ₹${total.toFixed(2)}
+    `;
+  });
+
+  // Popup Controls
+  document.getElementById('investBtn').addEventListener('click', ()=> popup.style.display = "flex");
+  document.getElementById('closeForm').addEventListener('click', ()=> popup.style.display = "none");
+  document.getElementById('checkBtn').addEventListener('click', ()=> popupCheck.style.display = "flex");
+  document.getElementById('closeCheck').addEventListener('click', ()=> popupCheck.style.display = "none");
+
+  // Submit Investment (UPI Payment)
+  document.getElementById('submitBtn').addEventListener('click', async function(){
+    const name = document.getElementById('fname').value.trim();
+    const email = document.getElementById('femail').value.trim();
+    const mobile = document.getElementById('fmobile').value.trim();
+    const amount = parseFloat(document.getElementById('famount').value);
+    const upi = document.getElementById('fupi').value.trim();
+    const days = parseInt(document.getElementById('fdays').value);
+
+    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 1){
+      alert("Please fill all fields correctly. Minimum amount is ₹2000.");
+      return;
+    }
+
+    const rate = days===365?12:days===182?9:days===90?6:3;
+    const date = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
+
+    try{
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('mobile', mobile);
+      formData.append('upi', upi);
+      formData.append('amount', amount);
+      formData.append('days', days);
+      formData.append('rate', rate);
+      formData.append('date', date);
+
+      const response = await fetch(scriptURL, { method: 'POST', body: formData });
+
+      if(response.ok){
+        const upiID = "7304792167@fam";
+        const nameUPI = "BHagyawantsingh Kansingh Rao";
+        const txnAmount = amount.toFixed(2);
+        const txnNote = "Investment by " + name;
+        const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR&tn=${encodeURIComponent(txnNote)}`;
+        window.location.href = upiURL;
+      } else {
+        alert("Error submitting form. Try again.");
+      }
+    } catch(err){
+      console.error(err);
+      alert("Error connecting to server.");
+    }
+  });
+
+  // Hardcoded multiple investments per mobile
+  const investments = {
+    "7977523959": [
+      { name:"Rajvendra Singh Rao", mobile:"7977523959", amount:100000, days:365, rate:12, date:"02/10/2025" },
+      { name:"Rajvendra Singh Rao", mobile:"7977523959", amount:5000, days:365, rate:12, date:"02/10/2025" }
+    ],
+    "9123456789": [
+      { name:"Test User", mobile:"9123456789", amount:20000, days:90, rate:6, date:"15/09/2025" }
+    ]
+  };
+
+  // Check Investment
+  document.getElementById('getInvestment').addEventListener('click', ()=> {
+    const mobile = document.getElementById('checkMobile').value.trim();
+    investmentResult.innerHTML = "";
+    if(!mobile){
+      alert("Please enter your registered mobile number.");
+      return;
+    }
+
+    const dataArray = investments[mobile];
+    if(dataArray && dataArray.length){
+      dataArray.forEach(data=>{
+        const [day, month, year] = data.date.split('/').map(Number);
+        const startDate = new Date(year, month-1, day);
+        const today = new Date();
+
+        let daysPassed = Math.floor((today - startDate) / (1000*60*60*24));
+        daysPassed = Math.min(daysPassed, data.days);
+
+        const dailyEarning = (data.amount * data.rate) / (365 * 100);
+        const interestEarnedSoFar = dailyEarning * daysPassed;
+        const totalMatureAmount = data.amount + (data.amount * data.rate * data.days) / (365 * 100);
+
+        const matureDate = new Date(startDate);
+        matureDate.setDate(matureDate.getDate() + data.days);
+        const matureDateStr = matureDate.toLocaleDateString('en-GB');
+
+        investmentResult.innerHTML += `
+          <div class="investment-block">
+            <b>Name:</b> ${data.name}<br>
+            <b>Mobile:</b> ${data.mobile}<br>
+            <b>Amount Invested:</b> ₹${data.amount}<br>
+            <b>Investment Period:</b> ${data.days} days<br>
+            <b>Interest Rate:</b> ${data.rate}% p.a.<br>
+            <b>Investment Date:</b> ${data.date}<br>
+            <b>Mature Date:</b> ${matureDateStr}<br>
+            <b>Days Passed:</b> ${daysPassed} / ${data.days} days<br>
+            <b>Daily Earning:</b> ₹${dailyEarning.toFixed(2)}<br>
+            <b>Interest Earned So Far:</b> ₹${interestEarnedSoFar.toFixed(2)}<br>
+            <b>Total Expected at Maturity:</b> ₹${totalMatureAmount.toFixed(2)}
+            <div class="progress-container"><div class="progress-bar" style="width:${(daysPassed/data.days*100)}%"></div></div>
+          </div>
+        `;
+      });
+    } else {
+      investmentResult.innerHTML = "No investment found for this mobile number. If you have done Payment then your Investment will be updated in 24hrs.";
+    }
+  });
+});
+</script>
 </body>
 </html>
