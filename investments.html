@@ -179,7 +179,6 @@ document.addEventListener("DOMContentLoaded", function(){
   const popupCheck = document.getElementById('popupCheck');
   const investmentResult = document.getElementById('investmentResult');
   const scriptURL = "https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec";
-  const recipientMobile = "7977523959"; // your number linked to UPI
   const recipientName = "Rajvendra Singh Rao";
 
   // Calculate Earnings
@@ -188,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const days = parseInt(document.getElementById('days').value);
     const rate = days===365?12:days===182?9:days===90?6:3;
 
-    if(isNaN(amount) || amount < 1){
+    if(isNaN(amount) || amount < 2000){
       resultDiv.innerText = "Minimum Investment Amount should be ₹2000.";
       return;
     }
@@ -210,14 +209,15 @@ document.addEventListener("DOMContentLoaded", function(){
   document.getElementById('checkBtn').addEventListener('click', ()=> popupCheck.style.display = "flex");
   document.getElementById('closeCheck').addEventListener('click', ()=> popupCheck.style.display = "none");
 
-  // Function to submit data to Google Sheets
+  // Submit data to Google Sheets
   async function submitFormData() {
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
     const mobile = document.getElementById('fmobile').value.trim();
     const amount = parseFloat(document.getElementById('famount').value);
     const days = parseInt(document.getElementById('fdays').value);
-    if(!name || !email || !mobile || isNaN(amount) || amount < 2000){
+    const upiId = document.getElementById('fupi').value.trim();
+    if(!name || !email || !mobile || isNaN(amount) || amount < 1 || !upiId){
       alert("Please fill all fields correctly. Minimum amount ₹2000.");
       return false;
     }
@@ -232,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function(){
       formData.append('days', days);
       formData.append('rate', rate);
       formData.append('date', date);
+      formData.append('upi', upiId);
       const response = await fetch(scriptURL, { method:'POST', body: formData });
       if(response.ok) return true;
       else { alert("Error submitting form. Try again."); return false; }
@@ -240,25 +241,28 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   }
 
+  // Function to copy UPI ID and open app
+  function payUPI(upiId){
+    navigator.clipboard.writeText(upiId).then(()=>{
+      alert("UPI ID copied! Open your UPI app to pay.");
+    }).catch(()=>{});
+    const upiLink = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(recipientName)}&cu=INR`;
+    window.location.href = upiLink;
+  }
+
   // Pay with GPay
   document.getElementById('payGpay').addEventListener('click', async function(){
     if(await submitFormData()){
-      const amount = parseFloat(document.getElementById('famount').value).toFixed(2);
-      const name = document.getElementById('fname').value.trim();
-      const note = "Investment by " + name;
-      const url = `https://pay.google.com/upi/pay?pa=${recipientMobile}@upi&pn=${encodeURIComponent(recipientName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-      window.open(url,"_blank");
+      const upiId = document.getElementById('fupi').value.trim();
+      payUPI(upiId);
     }
   });
 
   // Pay with PhonePe
   document.getElementById('payPhonePe').addEventListener('click', async function(){
     if(await submitFormData()){
-      const amount = parseFloat(document.getElementById('famount').value).toFixed(2);
-      const name = document.getElementById('fname').value.trim();
-      const note = "Investment by " + name;
-      const url = `phonepe://upi/pay?pa=${recipientMobile}@upi&pn=${encodeURIComponent(recipientName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-      window.open(url,"_blank");
+      const upiId = document.getElementById('fupi').value.trim();
+      payUPI(upiId);
     }
   });
 
