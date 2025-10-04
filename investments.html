@@ -188,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const days = parseInt(document.getElementById('days').value);
     const rate = days===365?12:days===182?9:days===90?6:3;
 
-    if(isNaN(amount) || amount < 2000){
+    if(isNaN(amount) || amount < 1){
       resultDiv.innerText = "Minimum Investment Amount should be ₹2000.";
       return;
     }
