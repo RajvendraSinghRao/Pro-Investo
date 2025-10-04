@@ -97,12 +97,14 @@
 
   <button id="calcBtn">Calculate Earnings</button>
   <button id="investBtn">Invest Now</button>
+  <button id="checkBtn">Check My Investment</button>
 
   <div class="result" id="result">
     Enter amount and select period to see your earnings.
   </div>
 </div>
 
+<!-- Investment Form Popup -->
 <div class="popup" id="popupForm">
   <div class="popup-content">
     <span class="close-btn" id="closeForm">×</span>
@@ -113,7 +115,7 @@
     <input type="email" id="femail" required>
     <label>Mobile:</label>
     <input type="text" id="fmobile" required>
-    <label>Amount (≥ ₹1):</label>
+    <label>Amount (≥ ₹2000):</label>
     <input type="number" id="famount" required>
     <label>Your UPI ID:</label>
     <input type="text" id="fupi" placeholder="example@okhdfcbank" required>
@@ -128,11 +130,25 @@
   </div>
 </div>
 
+<!-- Check Investment Popup -->
+<div class="popup" id="popupCheck">
+  <div class="popup-content">
+    <span class="close-btn" id="closeCheck">×</span>
+    <h3>Check My Investment</h3>
+    <label>Enter Mobile Number:</label>
+    <input type="text" id="checkMobile" placeholder="Enter your registered mobile">
+    <button id="getInvestment">View Investment</button>
+    <div id="investmentResult" style="margin-top:15px; font-weight:bold;"></div>
+  </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function(){
-
   const resultDiv = document.getElementById('result');
   const popup = document.getElementById('popupForm');
+  const popupCheck = document.getElementById('popupCheck');
+  const investmentResult = document.getElementById('investmentResult');
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec";
 
   // Calculate Earnings
   document.getElementById('calcBtn').addEventListener('click', function() {
@@ -156,11 +172,13 @@ document.addEventListener("DOMContentLoaded", function(){
     `;
   });
 
-  // Open & Close Form
+  // Popup Controls
   document.getElementById('investBtn').addEventListener('click', ()=> popup.style.display = "flex");
   document.getElementById('closeForm').addEventListener('click', ()=> popup.style.display = "none");
+  document.getElementById('checkBtn').addEventListener('click', ()=> popupCheck.style.display = "flex");
+  document.getElementById('closeCheck').addEventListener('click', ()=> popupCheck.style.display = "none");
 
-  // Submit Form
+  // Submit Investment
   document.getElementById('submitBtn').addEventListener('click', async function(){
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
@@ -169,15 +187,13 @@ document.addEventListener("DOMContentLoaded", function(){
     const upi = document.getElementById('fupi').value.trim();
     const days = parseInt(document.getElementById('fdays').value);
 
-    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 1){
+    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000){
       alert("Please fill all fields correctly. Minimum amount is ₹2000.");
       return;
     }
 
     const rate = days===365?12:days===182?9:days===90?6:3;
-    const date = new Date().toLocaleDateString();
-
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec";
+    const date = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
 
     try{
       const formData = new FormData();
@@ -191,27 +207,61 @@ document.addEventListener("DOMContentLoaded", function(){
       formData.append('date', date);
 
       const response = await fetch(scriptURL, { method: 'POST', body: formData });
-      
-      if(response.ok){
 
+      if(response.ok){
         const upiID = "rajvendrarao@okhdfcbank";
         const nameUPI = "Rajvendra Singh Rao";
         const txnAmount = amount.toFixed(2);
-        const txnNote = "Investment by " + name; // user name from form
+        const txnNote = "Investment by " + name;
         const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR&tn=${encodeURIComponent(txnNote)}`;
-
         window.location.href = upiURL;
-
       } else {
         alert("Error submitting form. Try again.");
       }
-
     } catch(err){
       console.error(err);
       alert("Error connecting to server.");
     }
   });
 
+  // Fetch Investment & Calculate Interest Progress
+  document.getElementById('getInvestment').addEventListener('click', async ()=>{
+    const mobile = document.getElementById('checkMobile').value.trim();
+    if(!mobile){
+      alert("Please enter your registered mobile number.");
+      return;
+    }
+
+    investmentResult.innerHTML = "Checking, please wait...";
+    try {
+      const res = await fetch(`${scriptURL}?mobile=${mobile}`);
+      const data = await res.json();
+
+      if(data && data.status === "success"){
+        const startDateParts = data.date.split('/');
+        const startDate = new Date(`${startDateParts[2]}-${startDateParts[1]}-${startDateParts[0]}`);
+        const today = new Date();
+        const daysPassed = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        const progressDays = Math.min(daysPassed, data.days);
+        const interestEarned = (data.amount * data.rate * progressDays) / (365 * 100);
+
+        investmentResult.innerHTML = `
+          Name: ${data.name}<br>
+          Amount Invested: ₹${data.amount}<br>
+          Period: ${data.days} days<br>
+          Rate: ${data.rate}%<br>
+          Date: ${data.date}<br><br>
+          <b>Days Passed:</b> ${progressDays} days<br>
+          <b>Interest Earned So Far:</b> ₹${interestEarned.toFixed(2)}
+        `;
+      } else {
+        investmentResult.innerHTML = "No investment found for this mobile number.";
+      }
+    } catch(err){
+      console.error(err);
+      investmentResult.innerHTML = "Error fetching details.";
+    }
+  });
 });
 </script>
 </body>
