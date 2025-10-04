@@ -61,13 +61,14 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    overflow-y: auto;
   }
   .popup-content {
     background: white;
     padding: 25px;
     border-radius: 12px;
     width: 90%;
-    max-width: 400px;
+    max-width: 500px;
     text-align: left;
     position: relative;
   }
@@ -77,6 +78,25 @@
     top:10px; right:15px;
     cursor:pointer;
     font-size: 20px;
+  }
+  /* Progress bar */
+  .progress-container {
+    margin-top:5px;
+    background:#ddd;
+    border-radius:8px;
+    overflow:hidden;
+    height:20px;
+  }
+  .progress-bar {
+    height:100%;
+    width:0%;
+    background:#0f3d66;
+    transition: width 0.5s;
+  }
+  .investment-block {
+    margin-bottom:20px;
+    padding:10px;
+    border-bottom:1px solid #ccc;
   }
 </style>
 </head>
@@ -137,7 +157,7 @@
     <h3>Check My Investment</h3>
     <label>Enter Mobile Number:</label>
     <input type="text" id="checkMobile" placeholder="Enter your registered mobile">
-    <button id="getInvestment">View Investment</button>
+    <button id="getInvestment">View Investments</button>
     <div id="investmentResult" style="margin-top:15px; font-weight:bold;"></div>
   </div>
 </div>
@@ -178,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function(){
   document.getElementById('checkBtn').addEventListener('click', ()=> popupCheck.style.display = "flex");
   document.getElementById('closeCheck').addEventListener('click', ()=> popupCheck.style.display = "none");
 
-  // Submit Investment
+  // Submit Investment (UPI Payment)
   document.getElementById('submitBtn').addEventListener('click', async function(){
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
@@ -224,81 +244,66 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   });
 
+  // Hardcoded multiple investments per mobile
+  const investments = {
+    "8850535094": [
+      { name:"Rajvendra Singh Rao", mobile:"8850535094", amount:50000, days:182, rate:9, date:"01/10/2025" },
+      { name:"Rajvendra Singh Rao", mobile:"8850535094", amount:30000, days:90, rate:6, date:"20/09/2025" }
+    ],
+    "9123456789": [
+      { name:"Test User", mobile:"9123456789", amount:20000, days:90, rate:6, date:"15/09/2025" }
+    ]
+  };
 
-  // Hardcoded investment data
-const investments = {
-  "8850535094": {
-    name: "Rajvendra Singh Rao",
-    mobile: "8850535094",
-    amount: 50000,          // invested amount
-    days: 182,              // investment period in days
-    rate: 9,                // annual interest rate
-    date: "01/10/2025"      // dd/mm/yyyy
-  },
-  "9123456789": {
-    name: "Test User",
-    mobile: "9123456789",
-    amount: 20000,
-    days: 90,
-    rate: 6,
-    date: "15/09/2025"
-  }
-};
+  // Check Investment
+  document.getElementById('getInvestment').addEventListener('click', ()=> {
+    const mobile = document.getElementById('checkMobile').value.trim();
+    investmentResult.innerHTML = "";
+    if(!mobile){
+      alert("Please enter your registered mobile number.");
+      return;
+    }
 
-document.getElementById('getInvestment').addEventListener('click', ()=> {
-  const mobile = document.getElementById('checkMobile').value.trim();
-  const investmentResult = document.getElementById('investmentResult');
-  const progressBar = document.getElementById('investmentProgress');
-  
-  if(!mobile){
-    alert("Please enter your registered mobile number.");
-    return;
-  }
+    const dataArray = investments[mobile];
+    if(dataArray && dataArray.length){
+      dataArray.forEach(data=>{
+        const [day, month, year] = data.date.split('/').map(Number);
+        const startDate = new Date(year, month-1, day);
+        const today = new Date();
 
-  const data = investments[mobile]; // get manual data
-  if(data){
-    // Parse start date
-    const startDateParts = data.date.split('/');
-    const startDate = new Date(`${startDateParts[2]}-${startDateParts[1]}-${startDateParts[0]}`);
-    const today = new Date();
+        let daysPassed = Math.floor((today - startDate) / (1000*60*60*24));
+        daysPassed = Math.min(daysPassed, data.days);
 
-    // Days passed and progress
-    const daysPassed = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-    const progressDays = Math.min(daysPassed, data.days);
+        const dailyEarning = (data.amount * data.rate) / (365 * 100);
+        const interestEarnedSoFar = dailyEarning * daysPassed;
+        const totalMatureAmount = data.amount + (data.amount * data.rate * data.days) / (365 * 100);
 
-    // Calculations
-    const dailyEarning = (data.amount * data.rate) / (365 * 100);
-    const interestEarnedSoFar = dailyEarning * progressDays;
-    const totalMatureAmount = data.amount + (data.amount * data.rate * data.days) / (365 * 100);
+        const matureDate = new Date(startDate);
+        matureDate.setDate(matureDate.getDate() + data.days);
+        const matureDateStr = matureDate.toLocaleDateString('en-GB');
 
-    // Mature date
-    const matureDate = new Date(startDate.getTime());
-    matureDate.setDate(matureDate.getDate() + data.days);
-    const matureDateStr = matureDate.toLocaleDateString('en-GB');
-
-    // Progress bar
-    const progressPercent = (progressDays / data.days) * 100;
-    progressBar.style.width = progressPercent + "%";
-
-    investmentResult.innerHTML = `
-      <b>Name:</b> ${data.name}<br>
-      <b>Mobile:</b> ${data.mobile}<br>
-      <b>Amount Invested:</b> ₹${data.amount}<br>
-      <b>Investment Period:</b> ${data.days} days<br>
-      <b>Interest Rate:</b> ${data.rate}% p.a.<br>
-      <b>Investment Date:</b> ${data.date}<br>
-      <b>Mature Date:</b> ${matureDateStr}<br><br>
-      <b>Days Passed:</b> ${progressDays} days<br>
-      <b>Daily Earning:</b> ₹${dailyEarning.toFixed(2)}<br>
-      <b>Interest Earned So Far:</b> ₹${interestEarnedSoFar.toFixed(2)}<br>
-      <b>Total Expected at Maturity:</b> ₹${totalMatureAmount.toFixed(2)}
-    `;
-  } else {
-    investmentResult.innerHTML = "No investment found for this mobile number.";
-    progressBar.style.width = "0%";
-  }
+        investmentResult.innerHTML += `
+          <div class="investment-block">
+            <b>Name:</b> ${data.name}<br>
+            <b>Mobile:</b> ${data.mobile}<br>
+            <b>Amount Invested:</b> ₹${data.amount}<br>
+            <b>Investment Period:</b> ${data.days} days<br>
+            <b>Interest Rate:</b> ${data.rate}% p.a.<br>
+            <b>Investment Date:</b> ${data.date}<br>
+            <b>Mature Date:</b> ${matureDateStr}<br>
+            <b>Days Passed:</b> ${daysPassed} / ${data.days} days<br>
+            <b>Daily Earning:</b> ₹${dailyEarning.toFixed(2)}<br>
+            <b>Interest Earned So Far:</b> ₹${interestEarnedSoFar.toFixed(2)}<br>
+            <b>Total Expected at Maturity:</b> ₹${totalMatureAmount.toFixed(2)}
+            <div class="progress-container"><div class="progress-bar" style="width:${(daysPassed/data.days*100)}%"></div></div>
+          </div>
+        `;
+      });
+    } else {
+      investmentResult.innerHTML = "No investment found for this mobile number.";
+    }
+  });
 });
-
 </script>
 </body>
 </html>
