@@ -224,45 +224,6 @@ document.addEventListener("DOMContentLoaded", function(){
     }
   });
 
-  // Fetch Investment & Calculate Interest Progress
-  document.getElementById('getInvestment').addEventListener('click', async ()=>{
-    const mobile = document.getElementById('checkMobile').value.trim();
-    if(!mobile){
-      alert("Please enter your registered mobile number.");
-      return;
-    }
-
-    investmentResult.innerHTML = "Checking, please wait...";
-    try {
-      const res = await fetch(`${scriptURL}?mobile=${mobile}`);
-      const data = await res.json();
-
-      if(data && data.status === "success"){
-        const startDateParts = data.date.split('/');
-        const startDate = new Date(`${startDateParts[2]}-${startDateParts[1]}-${startDateParts[0]}`);
-        const today = new Date();
-        const daysPassed = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-        const progressDays = Math.min(daysPassed, data.days);
-        const interestEarned = (data.amount * data.rate * progressDays) / (365 * 100);
-
-        investmentResult.innerHTML = `
-          Name: ${data.name}<br>
-          Amount Invested: ₹${data.amount}<br>
-          Period: ${data.days} days<br>
-          Rate: ${data.rate}%<br>
-          Date: ${data.date}<br><br>
-          <b>Days Passed:</b> ${progressDays} days<br>
-          <b>Interest Earned So Far:</b> ₹${interestEarned.toFixed(2)}
-        `;
-      } else {
-        investmentResult.innerHTML = "No investment found for this mobile number.";
-      }
-    } catch(err){
-      console.error(err);
-      investmentResult.innerHTML = "Error fetching details.";
-    }
-  });
-});
 
   // Hardcoded investment data
 const investments = {
