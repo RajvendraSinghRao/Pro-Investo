@@ -98,6 +98,24 @@
     padding:10px;
     border-bottom:1px solid #ccc;
   }
+  .upi-display {
+    text-align:center;
+    margin-top: 20px;
+  }
+  .upi-display img {
+    width: 200px;
+    height: 200px;
+  }
+  .copy-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background:#0f3d66;
+    color:#fff;
+    border:none;
+    cursor:pointer;
+    border-radius:6px;
+  }
+  .copy-btn:hover { background:#0a2a45; }
 </style>
 </head>
 <body>
@@ -147,6 +165,16 @@
       <option value="30">30 days (3% annualized)</option>
     </select>
     <button id="submitBtn">Submit & Pay</button>
+
+    <!-- UPI Display -->
+    <div class="upi-display" id="upiDisplay" style="display:none;">
+      <h4>Scan QR to Pay or Copy UPI ID</h4>
+      <img src="qr.jpg" alt="UPI QR Code">
+      <div style="margin-top:10px;">
+        <span id="upiText">rajvendrarao@okhdfcbank</span>
+        <button class="copy-btn" id="copyUpiBtn">Copy UPI ID</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -168,6 +196,8 @@ document.addEventListener("DOMContentLoaded", function(){
   const popup = document.getElementById('popupForm');
   const popupCheck = document.getElementById('popupCheck');
   const investmentResult = document.getElementById('investmentResult');
+  const upiDisplay = document.getElementById('upiDisplay');
+  const upiText = document.getElementById('upiText');
   const scriptURL = "https://script.google.com/macros/s/AKfycbwMreqOTRYOYKi0jPapCKHeei7xcJBbtIFDFncfVqPqOz0_hrvOpzqsSfsNRlkhOn1K/exec";
 
   // Calculate Earnings
@@ -193,12 +223,15 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   // Popup Controls
-  document.getElementById('investBtn').addEventListener('click', ()=> popup.style.display = "flex");
+  document.getElementById('investBtn').addEventListener('click', ()=> {
+    popup.style.display = "flex";
+    upiDisplay.style.display = "none"; // hide QR initially
+  });
   document.getElementById('closeForm').addEventListener('click', ()=> popup.style.display = "none");
   document.getElementById('checkBtn').addEventListener('click', ()=> popupCheck.style.display = "flex");
   document.getElementById('closeCheck').addEventListener('click', ()=> popupCheck.style.display = "none");
 
-  // Submit Investment (UPI Payment)
+  // Submit Investment (Show QR & UPI ID)
   document.getElementById('submitBtn').addEventListener('click', async function(){
     const name = document.getElementById('fname').value.trim();
     const email = document.getElementById('femail').value.trim();
@@ -207,13 +240,13 @@ document.addEventListener("DOMContentLoaded", function(){
     const upi = document.getElementById('fupi').value.trim();
     const days = parseInt(document.getElementById('fdays').value);
 
-    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 1){
+    if(!name || !email || !mobile || !upi || isNaN(amount) || amount < 2000){
       alert("Please fill all fields correctly. Minimum amount is ₹2000.");
       return;
     }
 
     const rate = days===365?12:days===182?9:days===90?6:3;
-    const date = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
+    const date = new Date().toLocaleDateString('en-GB');
 
     try{
       const formData = new FormData();
@@ -229,12 +262,9 @@ document.addEventListener("DOMContentLoaded", function(){
       const response = await fetch(scriptURL, { method: 'POST', body: formData });
 
       if(response.ok){
-        const upiID = "7304792167@fam";
-        const nameUPI = "BHagyawantsingh Kansingh Rao";
-        const txnAmount = amount.toFixed(2);
-        const txnNote = "Investment by " + name;
-        const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR&tn=${encodeURIComponent(txnNote)}`;
-        window.location.href = upiURL;
+        // Show QR & UPI ID
+        upiDisplay.style.display = "block";
+        document.getElementById('submitBtn').disabled = true;
       } else {
         alert("Error submitting form. Try again.");
       }
@@ -242,6 +272,13 @@ document.addEventListener("DOMContentLoaded", function(){
       console.error(err);
       alert("Error connecting to server.");
     }
+  });
+
+  // Copy UPI ID
+  document.getElementById('copyUpiBtn').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(upiText.textContent)
+      .then(()=> alert("UPI ID copied to clipboard!"))
+      .catch(()=> alert("Failed to copy UPI ID."));
   });
 
   // Hardcoded multiple investments per mobile
