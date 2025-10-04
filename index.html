@@ -229,8 +229,8 @@ document.addEventListener("DOMContentLoaded", function(){
       const response = await fetch(scriptURL, { method: 'POST', body: formData });
 
       if(response.ok){
-        const upiID = "rajvendrarao@okhdfcbank";
-        const nameUPI = "Rajvendra Singh Rao";
+        const upiID = "7304792167@fam";
+        const nameUPI = "BHagyawantsingh Kansingh Rao";
         const txnAmount = amount.toFixed(2);
         const txnNote = "Investment by " + name;
         const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(nameUPI)}&am=${txnAmount}&cu=INR&tn=${encodeURIComponent(txnNote)}`;
